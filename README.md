@@ -1,10 +1,16 @@
 # Wordee
+
 Wordee is a random word picker with dictionary and news attached. Help you memorize vocabularies using CLI.
 Useful for english tests preparations like TOEFL or GRE.
 
-![](/imgs/screenshot_8.png)
+## Install Packages
+
+```shell
+pip install .
+```
 
 ## Pick a word
+
 ``python3 wordee.py --hide -i gre_vocabularies.txt`` picks from a words list file.
 
 ``python3 wordee.py --hide --translate ja -i gre_vocabularies.txt`` with translation
