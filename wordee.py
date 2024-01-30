@@ -1,4 +1,5 @@
 import argparse, os, random, requests, json, os, signal, sys, textwrap
+from more_function import find_paragraph_in_news
 from urllib.parse import urlparse, urlunparse
 from googletrans import Translator
 from GoogleNews import GoogleNews
@@ -60,21 +61,18 @@ def print_news_for_the_word(word):
     newsResults = get_news_for_the_word(word)
     console.print("Related news:", style="bold")
     for i, newsResult in enumerate(newsResults[:3]):
-        title = newsResult["title"].replace(word.capitalize(), "[bold]"+word.capitalize()+"[/bold]")
-        title = title.replace(word.lower(), "[bold]"+word+"[/bold]")
+        title = newsResult["title"].replace(word.capitalize(), "[blue bold]"+word.capitalize()+"[/blue bold]")
+        title = title.replace(word.lower(), "[blue bold]"+word+"[/blue bold]")
         console.print(newsWrapper.fill("%s. "%(i+1)+title).replace("%s. "%(i+1), "%s. "%(i+1)+"[link="+clean_url(newsResult["link"])+"]"))
-        print(newsResult.keys())
-        print(clean_url(newsResult["link"]))
-        # Assuming 'content' is a field in newsResult that contains the full text of the news
-        # content = newsResult.get("content", "")
-        # for paragraph in content.split('\n'):  # Splitting content into paragraphs
-        #     if word.lower() in paragraph.lower():  # Checking if the word is in the paragraph
-        #         highlighted_paragraph = paragraph.replace(word.capitalize(), "[bold]"+word.capitalize()+"[/bold]")
-        #         highlighted_paragraph = highlighted_paragraph.replace(word.lower(), "[bold]"+word+"[/bold]")
-        #         console.print(highlighted_paragraph)
-        #         break  # Assuming we only want to print the first paragraph containing the word
 
-        # console.print("")
+        if i == 2: 
+            console.print("")
+            content  = find_paragraph_in_news(clean_url(newsResult["link"]), word)
+            highlighted_paragraph = content.replace(word.capitalize(), "[blue bold]"+word.capitalize()+"[/blue bold]")
+            highlighted_paragraph = highlighted_paragraph.replace(word.lower(), "[blue bold]"+word+"[/blue bold]")
+            console.print(highlighted_paragraph)
+
+        console.print("")
 
 def print_word_with_dictionary(word, wordDescription="", hideDictionary=False, translator=None, translateDestination=None, alwaysShowNews=None):
         if translator!=None:
@@ -345,6 +343,6 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
 
-    # start()
-    print_news_for_the_word_old('Rigor')
-    print_news_for_the_word('Rigor')
+    start()
+    # print_news_for_the_word_old('Rigor')
+    # print_news_for_the_word('Rigor')
