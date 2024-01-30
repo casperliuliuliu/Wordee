@@ -1,43 +1,17 @@
 import argparse, os, random, requests, json, os, signal, sys, textwrap
+from urllib.parse import urlparse, urlunparse
 from googletrans import Translator
+from GoogleNews import GoogleNews
 from rich.console import Console
 from rich.prompt import Prompt
-from GoogleNews import GoogleNews
+import concurrent.futures
 
-wordee_description = "📖 Wordee, a random word picker with dictionary and news attached."
-
-googlenews = GoogleNews(lang="en")
-console = Console()
-bookmarked_surfix = "_bookmarked"
-
-textWrapper = textwrap.TextWrapper(initial_indent=" ", subsequent_indent=" ")
-newsWrapper = textwrap.TextWrapper(width=90, initial_indent=" ", subsequent_indent=" ")
-textWrapperDoubleIndents = textwrap.TextWrapper(initial_indent="    ", subsequent_indent="    ")
-
-parser = argparse.ArgumentParser(description=wordee_description)
-
-parser.add_argument("-i", dest="filename", required=True,
-                    help="Specify input text file.", metavar="FILE",
-                    type=lambda x: is_valid_file(parser, x))
-
-parser.add_argument("--hide", dest="hideDictionary", action='store_true',
-                    help="Hide the dictionary result. Until enter pressed.")
-
-# parser.add_argument("--phonetic", dest="phonetic", action='store_true',
-#                     help="Play phonetic sound.")
-
-parser.add_argument("--translate", dest="translateDestination", metavar="LANG",
-        help="Translate destination language. For example \"ja\", \"ko\", \"zh-tw\".")
-
-parser.add_argument("--news", dest="alwaysShowNews", action='store_true',
-        help="Always show the news related to the word. Can be a little bit slower.")
-
-parser.add_argument("--bookmarked", dest="bookmarkedProbability", nargs='?', metavar="FLOAT",
-        help="Specify probability to pick next random word from bookmarked list.", const=1, type=float, default=0)
-
-exitOnCtrlC = False
-wordDictionaryResponseJSONCache = {}
-wordNewsResultsCache = {}
+def clean_url(url, parameter="&ved"):
+    index = url.find(parameter)
+    if index != -1:
+        return url[:index]
+    else:
+        return url
 
 def asynchronous(func):
     async def wrapper(*args, **kwargs):
@@ -72,7 +46,7 @@ def get_news_for_the_word(word):
         wordNewsResultsCache[word] = newsResults
         return newsResults
 
-def print_news_for_the_word(word):
+def print_news_for_the_word_old(word):
     newsResults = get_news_for_the_word(word)
     console.print("Related news:", style="bold")
     for i, newsResult in enumerate(newsResults[:5]):
@@ -81,6 +55,26 @@ def print_news_for_the_word(word):
         # console.print(" %s. "%(i+1)+"[link="+newsResult["link"]+"]"+title)
         console.print(newsWrapper.fill("%s. "%(i+1)+title).replace("%s. "%(i+1), "%s. "%(i+1)+"[link="+newsResult["link"]+"]"))
     console.print("")
+
+def print_news_for_the_word(word):
+    newsResults = get_news_for_the_word(word)
+    console.print("Related news:", style="bold")
+    for i, newsResult in enumerate(newsResults[:3]):
+        title = newsResult["title"].replace(word.capitalize(), "[bold]"+word.capitalize()+"[/bold]")
+        title = title.replace(word.lower(), "[bold]"+word+"[/bold]")
+        console.print(newsWrapper.fill("%s. "%(i+1)+title).replace("%s. "%(i+1), "%s. "%(i+1)+"[link="+clean_url(newsResult["link"])+"]"))
+        print(newsResult.keys())
+        print(clean_url(newsResult["link"]))
+        # Assuming 'content' is a field in newsResult that contains the full text of the news
+        # content = newsResult.get("content", "")
+        # for paragraph in content.split('\n'):  # Splitting content into paragraphs
+        #     if word.lower() in paragraph.lower():  # Checking if the word is in the paragraph
+        #         highlighted_paragraph = paragraph.replace(word.capitalize(), "[bold]"+word.capitalize()+"[/bold]")
+        #         highlighted_paragraph = highlighted_paragraph.replace(word.lower(), "[bold]"+word+"[/bold]")
+        #         console.print(highlighted_paragraph)
+        #         break  # Assuming we only want to print the first paragraph containing the word
+
+        # console.print("")
 
 def print_word_with_dictionary(word, wordDescription="", hideDictionary=False, translator=None, translateDestination=None, alwaysShowNews=None):
         if translator!=None:
@@ -312,7 +306,45 @@ def start():
         else:
             console.print("Unknown action \""+code+"\".", style="red")
 
-signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == "__main__":
-    start()
+    wordee_description = "📖 Wordee, a random word picker with dictionary and news attached."
+
+    googlenews = GoogleNews(lang="en")
+    console = Console()
+    bookmarked_surfix = "_bookmarked"
+
+    textWrapper = textwrap.TextWrapper(initial_indent=" ", subsequent_indent=" ")
+    newsWrapper = textwrap.TextWrapper(width=90, initial_indent=" ", subsequent_indent=" ")
+    textWrapperDoubleIndents = textwrap.TextWrapper(initial_indent="    ", subsequent_indent="    ")
+
+    parser = argparse.ArgumentParser(description=wordee_description)
+
+    parser.add_argument("-i", dest="filename", required=True,
+                        help="Specify input text file.", metavar="FILE",
+                        type=lambda x: is_valid_file(parser, x))
+
+    parser.add_argument("--hide", dest="hideDictionary", action='store_true',
+                        help="Hide the dictionary result. Until enter pressed.")
+
+    # parser.add_argument("--phonetic", dest="phonetic", action='store_true',
+    #                     help="Play phonetic sound.")
+
+    parser.add_argument("--translate", dest="translateDestination", metavar="LANG",
+            help="Translate destination language. For example \"ja\", \"ko\", \"zh-tw\".")
+
+    parser.add_argument("--news", dest="alwaysShowNews", action='store_true',
+            help="Always show the news related to the word. Can be a little bit slower.")
+
+    parser.add_argument("--bookmarked", dest="bookmarkedProbability", nargs='?', metavar="FLOAT",
+            help="Specify probability to pick next random word from bookmarked list.", const=1, type=float, default=0)
+
+    exitOnCtrlC = False
+    wordDictionaryResponseJSONCache = {}
+    wordNewsResultsCache = {}
+
+    signal.signal(signal.SIGINT, signal_handler)
+
+    # start()
+    print_news_for_the_word_old('Rigor')
+    print_news_for_the_word('Rigor')
