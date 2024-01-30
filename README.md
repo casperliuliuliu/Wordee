@@ -10,14 +10,15 @@ pip install .
 ```
 
 ## Pick a word
+* Run
 
 ```shell
 python wordee.py --hide -i gre_vocabularies.txt # picks from a words list file.
 ```
 
+* With Translation
 
 ```shell
-
 python wordee.py --hide -i gre_vocabularies.txt --translate ja # with Japanese translation
 ```
 
@@ -36,14 +37,16 @@ python wordee.py --news -i gre_vocabularies.txt # always shows the news related 
 
 
 <!-- ``python3 wordee.py --bookmarked 0.5 -i gre_vocabularies.txt`` specifies probability to pick next random word from bookmarked list. -->
+* bookmarked list
 
 ```shell
 python wordee.py --bookmarked -i gre_vocabularies.txt # always pick next random word from bookmarked list. Probability can also be specified.
 ```
 
+* for help
 
 ```shell
-python3 wordee.py -h # for help
+python3 wordee.py -h 
 ```
 
 
